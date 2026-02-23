@@ -13,7 +13,7 @@ Une interface web moderne pour publier des articles sur Telegraph (telegra.ph) a
 - Sauvegarde locale du token (localStorage)
 
 ## Déploiement
-Hébergé sur Vercel : [https://telegraph-pro-mod-prod.vercel.app](https://telegraph-pro-mod-prod.vercel.app)  
+Hébergé sur Vercel : [https://telegraph-pro-mod-prod.vercel.app](https://telegraph-studio-pro.vercel.app/)
 (Change l'URL une fois que Vercel t'a donné la tienne)
 
 ## Comment utiliser
