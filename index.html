@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- === FAVICONS & ICÔNES (ajout essentiel) === -->
+    <!-- Favicon & icônes -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
-
-    <!-- Bonus : couleur barre navigateur mobile -->
     <meta name="theme-color" content="#000000">
 
     <title>Telegraph Studio Pro - API Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+
     <style>
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             background-color: #000000;
             color: #ffffff;
             -webkit-tap-highlight-color: transparent;
@@ -51,21 +50,39 @@
         #editor h4 { font-size: 1.4rem; font-weight: 700; margin: 1.2rem 0 0.5rem 0; color: #fb923c; }
 
         .toolbar-container {
-            @apply flex items-center justify-between w-full bg-black py-4 sticky top-0 z-20 border-b border-[#222];
-            flex-wrap: nowrap !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background-color: #000;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid #222;
+            gap: 2px;
             overflow-x: auto;
             scrollbar-width: none;
         }
         .toolbar-container::-webkit-scrollbar { display: none; }
-        
+
         .toolbar-btn {
-            @apply flex items-center justify-center text-[#999] transition-all hover:text-white active:text-[#f97316] flex-shrink-0;
-            width: 16%; 
-            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            transition: all 0.15s;
+            flex: 1;
+            max-width: 52px;
+            height: 44px;
         }
+        .toolbar-btn:hover { color: white; }
+        .toolbar-btn:active { color: #f97316; }
 
         .input-title-container {
-            @apply border-b border-[#333] mb-8 pb-4;
+            border-bottom: 1px solid #333;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
         }
 
         #titleInput {
@@ -82,7 +99,7 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 min-h-screen">
 
 <div class="max-w-xl mx-auto">
 
@@ -105,22 +122,22 @@
 
     <!-- Barre d'outils -->
     <div class="toolbar-container">
-        <button onclick="format('bold')" class="toolbar-btn">
+        <button onclick="format('bold')" class="toolbar-btn" title="Gras">
             <span class="material-symbols-outlined">format_bold</span>
         </button>
-        <button onclick="format('italic')" class="toolbar-btn">
+        <button onclick="format('italic')" class="toolbar-btn" title="Italique">
             <span class="material-symbols-outlined">format_italic</span>
         </button>
-        <button onclick="format('formatBlock', 'h3')" class="toolbar-btn">
+        <button onclick="format('formatBlock', 'h3')" class="toolbar-btn" title="Titre 3">
             <span class="material-symbols-outlined">format_h1</span>
         </button>
-        <button onclick="format('formatBlock', 'h4')" class="toolbar-btn">
+        <button onclick="format('formatBlock', 'h4')" class="toolbar-btn" title="Titre 4">
             <span class="material-symbols-outlined">format_h2</span>
         </button>
-        <button onclick="format('insertUnorderedList')" class="toolbar-btn">
+        <button onclick="format('insertUnorderedList')" class="toolbar-btn" title="Liste">
             <span class="material-symbols-outlined">format_list_bulleted</span>
         </button>
-        <button onclick="document.getElementById('fileInput').click()" class="toolbar-btn">
+        <button onclick="document.getElementById('fileInput').click()" class="toolbar-btn" title="Image">
             <span id="photoIcon" class="material-symbols-outlined">image</span>
         </button>
         <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
@@ -207,399 +224,7 @@ window.onload = () => {
 function log(msg, color = "text-[#555]") {
     const time = new Date().toLocaleTimeString();
     const div = document.createElement("div");
-    div.innerHTML = `<span class="opacity-40 mr-2">\( {time}</span><span class="\( {color}"> \){msg}</span>`;
-    logEl.appendChild(div);
-    logEl.scrollTop = logEl.scrollHeight;
-}
-
-function updateInterface() {
-    const tphToken = localStorage.getItem("tph_token");
-    const imgbbKey = localStorage.getItem("imgbb_api_key");
-
-    document.getElementById("tphTokenInput").value = tphToken || "";
-    document.getElementById("imgbbApiKeyInput").value = imgbbKey || "";
-
-    if (tphToken) {
-        statusBadge.textContent = "COMPTE CONNECTÉ";
-        statusBadge.className = "text-[9px] font-bold text-green-500 uppercase tracking-[0.4em] mt-1";
-    } else {
-        statusBadge.textContent = "CONFIGURER COMPTE";
-        statusBadge.className = "text-[9px] font-bold text-[#f97316] uppercase tracking-[0.4em] mt-1";
-    }
-}
-
-function format(cmd, val = null) {
-    document.execCommand(cmd, false, val);
-    document.getElementById("editor").focus();
-}
-
-function saveToken() {
-    const token = document.getElementById("tphTokenInput").value.trim();
-    if (!token) return log("Token vide.", "text-red-500");
-    localStorage.setItem("tph_token", token);
-    updateInterface();
-    log("Token Telegraph enregistré !", "text-green-500");
-}
-
-function saveImgBBKey() {
-    const key = document.getElementById("imgbbApiKeyInput").value.trim();
-    if (!key) return log("Clé ImgBB vide.", "text-orange-500");
-    localStorage.setItem("imgbb_api_key", key);
-    log("Clé ImgBB enregistrée.", "text-green-500");
-}
-
-function connectLikeInApp() {
-    log("Simulation du flux Telex Pro – ouvre le bot Telegram", "text-blue-400");
-    
-    const botLink = "https://t.me/telegraph?start=login";
-    window.open(botLink, '_blank');
-
-    log("Étapes (comme dans l'APK) :");
-    log("1. Dans Telegram : clique 'Log in on this device'");
-    log("2. Confirme la connexion");
-    log("3. Ouvre https://edit.telegra.ph/ (depuis Telegram ou Chrome)");
-    log("4. Outils dev → Application → Cookies → https://edit.telegra.ph");
-    log("5. Copie la valeur de 'tph_token' (longue chaîne hex)");
-    log("6. Colle-la dans le champ 'Token Telegraph' ci-dessus et clique 'FIXER TOKEN'");
-    log("→ Ton compte réel sera lié (articles, stats, multi-appareils)", "text-green-400");
-
-    setTimeout(() => {
-        window.open("https://edit.telegra.ph/", '_blank');
-    }, 6000);
-}
-
-function exportConfig() {
-    const config = { 
-        tph_token: localStorage.getItem("tph_token"), 
-        imgbb_api_key: localStorage.getItem("imgbb_api_key") 
-    };
-    const blob = new Blob([JSON.stringify(config, null, 2)], {type: "application/json"});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = "telegraph_pro_config.json";
-    a.click();
-    log("Configuration exportée.", "text-green-500");
-}
-
-function importConfig(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const config = JSON.parse(e.target.result);
-            if (config.tph_token) localStorage.setItem("tph_token", config.tph_token);
-            if (config.imgbb_api_key) localStorage.setItem("imgbb_api_key", config.imgbb_api_key);
-            updateInterface();
-            log("Configuration importée avec succès.", "text-green-500");
-        } catch(err) {
-            log("Erreur lors de l'import JSON.", "text-red-500");
-        }
-    };
-    reader.readAsText(file);
-}
-
-async function handleImageUpload(input) {
-    const file = input.files[0];
-    const key = localStorage.getItem("imgbb_api_key");
-    if (!file) return;
-    if (!key) return log("Clé ImgBB manquante – ajoute-la d'abord.", "text-orange-500");
-
-    const icon = document.getElementById("photoIcon");
-    icon.innerHTML = "sync";
-    icon.classList.add("animate-spin-fast");
-
-    try {
-        const fd = new FormData();
-        fd.append("image", file);
-        fd.append("key", key);
-        const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: fd });
-        const data = await res.json();
-        if (data.success) {
-            document.execCommand("insertHTML", false, `<img src="${data.data.url}" alt="Image uploadée">`);
-            log("Image uploadée avec succès.", "text-green-500");
-        } else {
-            log("Erreur ImgBB : " + (data.error?.message || "Inconnue"), "text-red-500");
-        }
-    } catch (e) {
-        log("Erreur réseau lors de l'upload image.", "text-red-500");
-    }
-
-    icon.innerHTML = "image";
-    icon.classList.remove("animate-spin-fast");
-    input.value = "";
-}
-
-function nodeToTph(node) {
-    if (node.nodeType === 3) {
-        const text = node.textContent.trim();
-        return text ? text : null;
-    }
-    if (node.nodeType !== 1) return null;
-
-    const map = {
-        'STRONG':'strong','B':'strong',
-        'EM':'em','I':'em',
-        'H3':'h3','H4':'h4',
-        'P':'p','DIV':'p',
-        'IMG':'img',
-        'A':'a',
-        'BR':'br',
-        'LI':'li',
-        'UL':'ul'
-    };
-    const tag = map[node.tagName];
-    if (!tag) {
-        let arr = [];
-        node.childNodes.forEach(c => {
-            const res = nodeToTph(c);
-            if (res) Array.isArray(res) ? arr.push(...res) : arr.push(res);
-        });
-        return arr.length ? arr : null;
-    }
-
-    const obj = { tag };
-    if (tag === 'img') {
-        const src = node.getAttribute("src");
-        if (src) obj.attrs = { src };
-        else return null;
-    }
-    if (tag === 'a') {
-        const href = node.getAttribute("href");
-        if (href) obj.attrs = { href };
-    }
-
-    let kids = [];
-    node.childNodes.forEach(c => {
-        const res = nodeToTph(c);
-        if (res) Array.isArray(res) ? kids.push(...res) : kids.push(res);
-    });
-
-    if (kids.length) obj.children = kids;
-    return (kids.length || tag === 'br') ? obj : null;
-}
-
-async function publish() {
-    const token = localStorage.getItem("tph_token");
-    const title = document.getElementById("titleInput").value.trim();
-    if (!token) return log("Token Telegraph manquant – connecte-toi d'abord.", "text-red-500");
-    if (!title) return log("Ajoute un titre avant de publier.", "text-orange-500");
-
-    const content = [];
-    document.getElementById("editor").childNodes.forEach(c => {
-        const res = nodeToTph(c);
-        if (res) Array.isArray(res) ? content.push(...res) : content.push(res);
-    });
-
-    const btn = document.getElementById("pubBtn");
-    btn.disabled = true;
-    btn.textContent = "PUBLICATION EN COURS...";
-
-    try {
-        const res = await fetch(`${API_BASE}createPage`, {
-            method: "POST",
-            body: new URLSearchParams({ 
-                access_token: token, 
-                title: title, 
-                content: JSON.stringify(content),
-                return_content: false
-            })
-        });
-        const d = await res.json();
-        if (d.ok) {
-            log("ARTICLE PUBLIÉ AVEC SUCCÈS !", "text-green-500");
-            document.getElementById("articleUrl").textContent = d.result.url;
-            document.getElementById("articleUrl").href = d.result.url;
-            document.getElementById("resultBox").classList.remove("hidden");
-        } else {
-            log("Erreur Telegraph : " + (d.error || "Réponse invalide"), "text-red-500");
-        }
-    } catch (e) {
-        log("Erreur réseau lors de la publication.", "text-red-500");
-    }
-
-    btn.disabled = false;
-    btn.textContent = "PUBLIER L'ARTICLE";
-}
-
-function copyUrl() {
-    const url = document.getElementById("articleUrl").textContent;
-    navigator.clipboard.writeText(url).then(() => {
-        log("Lien copié dans le presse-papiers.", "text-green-500");
-    });
-}
-
-function confirmReset() {
-    if (confirm("Tout réinitialiser (comptes, configs) ?")) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-</script>
-</body>
-</html>            margin: 1.5rem 0;
-        }
-        #editor h3 { font-size: 1.7rem; font-weight: 800; margin: 1.5rem 0 0.5rem 0; color: #f97316; }
-        #editor h4 { font-size: 1.4rem; font-weight: 700; margin: 1.2rem 0 0.5rem 0; color: #fb923c; }
-
-        .toolbar-container {
-            @apply flex items-center justify-between w-full bg-black py-4 sticky top-0 z-20 border-b border-[#222];
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-        .toolbar-container::-webkit-scrollbar { display: none; }
-        
-        .toolbar-btn {
-            @apply flex items-center justify-center text-[#999] transition-all hover:text-white active:text-[#f97316] flex-shrink-0;
-            width: 16%; 
-            height: 48px;
-        }
-
-        .input-title-container {
-            @apply border-b border-[#333] mb-8 pb-4;
-        }
-
-        #titleInput {
-            color: #ffffff;
-            font-size: 1.8rem;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .animate-spin-fast {
-            animation: spin 0.8s linear infinite;
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-
-<div class="max-w-xl mx-auto">
-
-    <!-- En-tête -->
-    <header class="flex justify-between items-center mb-8 px-1">
-        <div>
-            <h1 class="text-xl font-black tracking-tighter text-[#f97316]">TELEGRAPH<span class="text-white font-light">PRO</span></h1>
-            <div id="status-badge" class="text-[9px] font-bold text-[#555] uppercase tracking-[0.4em] mt-1">SYSTÈME PRÊT</div>
-        </div>
-        <div class="flex gap-4">
-            <button onclick="exportConfig()" title="Exporter" class="text-[#444] hover:text-white transition-colors">
-                <span class="material-symbols-outlined !text-[20px]">download</span>
-            </button>
-            <button onclick="document.getElementById('importInput').click()" title="Importer" class="text-[#444] hover:text-white transition-colors">
-                <span class="material-symbols-outlined !text-[20px]">upload_file</span>
-            </button>
-            <input type="file" id="importInput" accept=".json" class="hidden" onchange="importConfig(this)">
-        </div>
-    </header>
-
-    <!-- Barre d'outils -->
-    <div class="toolbar-container">
-        <button onclick="format('bold')" class="toolbar-btn">
-            <span class="material-symbols-outlined">format_bold</span>
-        </button>
-        <button onclick="format('italic')" class="toolbar-btn">
-            <span class="material-symbols-outlined">format_italic</span>
-        </button>
-        <button onclick="format('formatBlock', 'h3')" class="toolbar-btn">
-            <span class="material-symbols-outlined">format_h1</span>
-        </button>
-        <button onclick="format('formatBlock', 'h4')" class="toolbar-btn">
-            <span class="material-symbols-outlined">format_h2</span>
-        </button>
-        <button onclick="format('insertUnorderedList')" class="toolbar-btn">
-            <span class="material-symbols-outlined">format_list_bulleted</span>
-        </button>
-        <button onclick="document.getElementById('fileInput').click()" class="toolbar-btn">
-            <span id="photoIcon" class="material-symbols-outlined">image</span>
-        </button>
-        <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
-    </div>
-
-    <!-- Zone de texte -->
-    <div class="mt-6">
-        <div class="input-title-container">
-            <input id="titleInput" type="text" placeholder="Titre de l'article..." class="w-full font-bold bg-transparent outline-none placeholder-[#333]">
-        </div>
-        <div id="editor" contenteditable="true" data-placeholder="Commencez votre récit ici..." class="w-full"></div>
-    </div>
-
-    <!-- Actions -->
-    <div class="mt-12 flex gap-4">
-        <button id="pubBtn" onclick="publish()" class="flex-1 bg-[#f97316] hover:bg-orange-600 text-black font-black py-5 rounded text-[10px] tracking-[0.3em] transition-all flex items-center justify-center">
-            PUBLIER L'ARTICLE
-        </button>
-        <button onclick="confirmReset()" class="px-6 border border-[#222] text-[#444] hover:text-red-500 rounded transition-colors flex items-center justify-center">
-            <span class="material-symbols-outlined">delete_sweep</span>
-        </button>
-    </div>
-
-    <!-- Boîte de résultat -->
-    <div id="resultBox" class="hidden mt-6 p-5 bg-[#0a0a0a] border border-orange-500/30 rounded-lg">
-        <div class="flex flex-col gap-3">
-            <a id="articleUrl" href="#" target="_blank" class="text-xs text-orange-400 underline break-all text-center"></a>
-            <button onclick="copyUrl()" class="w-full py-2 bg-[#111] text-orange-500 text-[10px] font-black uppercase tracking-widest rounded">Copier le lien</button>
-        </div>
-    </div>
-
-    <!-- Console -->
-    <div id="log" class="mt-16 p-3 font-mono text-[10px] text-[#444] h-32 overflow-y-auto border-t border-[#111]"></div>
-
-    <!-- Configuration -->
-    <div class="mt-8 pt-8 border-t border-[#111] space-y-6">
-
-        <!-- Telegraph Token -->
-        <div>
-            <div class="flex items-center justify-between mb-3">
-                <label class="text-[9px] font-bold text-[#aaa] uppercase tracking-widest">Token Telegraph (@telegraph bot)</label>
-                <a href="https://t.me/telegraph" target="_blank" class="text-[9px] text-blue-400 flex items-center gap-1 hover:underline">
-                    Ouvrir le bot <span class="material-symbols-outlined !text-[12px]">open_in_new</span>
-                </a>
-            </div>
-            <div class="flex items-center gap-3">
-                <input id="tphTokenInput" type="text" placeholder="Colle ton tph_token ici (de edit.telegra.ph → cookies)" class="flex-1 bg-[#0a0a0a] border border-[#222] rounded px-3 py-2.5 text-[13px] text-white outline-none">
-                <button onclick="saveToken()" class="bg-green-700 hover:bg-green-600 text-white text-[10px] font-black px-5 py-2.5 rounded uppercase tracking-wider">FIXER TOKEN</button>
-            </div>
-            <button onclick="connectLikeInApp()" class="mt-3 w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded uppercase tracking-widest text-sm flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined">login</span>
-                Se connecter via @telegraph (comme Telex Pro)
-            </button>
-        </div>
-
-        <!-- ImgBB API Key -->
-        <div>
-            <div class="flex items-center justify-between mb-3">
-                <label class="text-[9px] font-bold text-[#aaa] uppercase tracking-widest">Clé API ImgBB (images)</label>
-                <a href="https://api.imgbb.com/" target="_blank" class="text-[9px] text-orange-500 flex items-center gap-1 hover:underline">
-                    Obtenir une clé <span class="material-symbols-outlined !text-[12px]">open_in_new</span>
-                </a>
-            </div>
-            <div class="flex items-center gap-3">
-                <input id="imgbbApiKeyInput" type="password" placeholder="Colle ta clé ImgBB ici..." class="flex-1 bg-[#0a0a0a] border border-[#222] rounded px-3 py-2.5 text-[13px] text-white outline-none">
-                <button onclick="saveImgBBKey()" class="bg-white text-black text-[10px] font-black px-5 py-2.5 rounded uppercase hover:bg-orange-500 transition-colors">FIXER IMG</button>
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
-<script>
-const API_BASE = "https://api.telegra.ph/";
-const logEl = document.getElementById("log");
-const statusBadge = document.getElementById("status-badge");
-
-window.onload = () => {
-    updateInterface();
-    log("Console prête. Prêt à configurer ?", "text-blue-400");
-};
-
-function log(msg, color = "text-[#555]") {
-    const time = new Date().toLocaleTimeString();
-    const div = document.createElement("div");
-    div.innerHTML = `<span class="opacity-40 mr-2">\( {time}</span><span class=" \){color}">${msg}</span>`;
+    div.innerHTML = `<span class="opacity-40 mr-2">[\( {time}]</span><span class=" \){color}">${msg}</span>`;
     logEl.appendChild(div);
     logEl.scrollTop = logEl.scrollHeight;
 }
